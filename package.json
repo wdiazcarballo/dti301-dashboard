@@ -4,7 +4,10 @@
   "description": "A growth dashboard for DTI301 sem 2/2567 course at Thammasat University Lampang Campus.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"No test specified\" && exit 0"
   },
   "repository": {
     "type": "git",
@@ -18,17 +21,12 @@
   },
   "homepage": "https://github.com/wdiazcarballo/dti301-dashboard#readme",
   "dependencies": {
-    "@azure/msal-browser": "^4.0.1",
-    "@microsoft/teams-js": "^2.33.0",
-    "lucide-react": "^0.473.0",
-    "next": "^15.1.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "recharts": "^2.15.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.7",
-    "@types/react": "^19.0.7",
-    "typescript": "^5.7.3"
+    "@microsoft/teams-js": "latest",
+    "@azure/msal-browser": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "next": "latest",
+    "recharts": "latest",
+    "lucide-react": "latest"
   }
 }
