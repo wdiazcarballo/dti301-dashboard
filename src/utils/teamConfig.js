@@ -1,4 +1,3 @@
-// teamConfig.js
 import * as microsoftTeams from "@microsoft/teams-js";
 import { PublicClientApplication } from "@azure/msal-browser";
 
@@ -11,24 +10,31 @@ const msalConfig = {
   },
   cache: {
     cacheLocation: "sessionStorage",
-    storeAuthStateInCookie: true
-  }
+    storeAuthStateInCookie: true,
+  },
 };
+
+// MSAL instance (initialized only in the browser)
+export let msalInstance;
+if (typeof window !== "undefined") {
+  msalInstance = new PublicClientApplication(msalConfig);
+}
 
 // Initialize Teams SDK
 export const initializeTeamsContext = async () => {
   try {
-    await microsoftTeams.app.initialize();
-    const context = await microsoftTeams.app.getContext();
-    return context;
+    if (typeof microsoftTeams !== "undefined") {
+      await microsoftTeams.app.initialize();
+      const context = await microsoftTeams.app.getContext();
+      return context;
+    } else {
+      throw new Error("Microsoft Teams SDK is not available.");
+    }
   } catch (error) {
     console.error("Error initializing Teams:", error);
     return null;
   }
 };
-
-// Initialize MSAL
-export const msalInstance = new PublicClientApplication(msalConfig);
 
 // Updated Graph API scopes for education
 export const graphScopes = [
@@ -38,7 +44,7 @@ export const graphScopes = [
   "EduAssignments.Read",
   "EduAssignments.ReadWrite",
   "EduAssignments.ReadBasic",
-  "EduAssignments.ReadWriteBasic"
+  "EduAssignments.ReadWriteBasic",
 ];
 
 // Get class assignments
@@ -80,14 +86,11 @@ export const getStudentSubmissions = async (accessToken, classId, assignmentId) 
 // Get student profile with educational info
 export const getStudentProfile = async (accessToken) => {
   try {
-    const response = await fetch(
-      "https://graph.microsoft.com/v1.0/education/me",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await fetch("https://graph.microsoft.com/v1.0/education/me", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return await response.json();
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -98,7 +101,6 @@ export const getStudentProfile = async (accessToken) => {
 // Submit mindfulness reflection
 export const submitReflection = async (accessToken, classId, assignmentId, reflection) => {
   try {
-    // Create submission resource
     const submissionResponse = await fetch(
       `https://graph.microsoft.com/v1.0/education/classes/${classId}/assignments/${assignmentId}/submissions`,
       {
@@ -112,14 +114,14 @@ export const submitReflection = async (accessToken, classId, assignmentId, refle
           submittedDateTime: new Date().toISOString(),
           content: {
             text: reflection,
-            contentType: "text"
-          }
+            contentType: "text",
+          },
         }),
       }
     );
-    
+
     if (!submissionResponse.ok) {
-      throw new Error('Failed to submit reflection');
+      throw new Error("Failed to submit reflection");
     }
 
     return await submissionResponse.json();

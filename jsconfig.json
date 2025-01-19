@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".", // Sets the root directory
+      "paths": {
+        "@/*": ["src/*"] // Maps '@' to the 'src' folder
+      }
+    },
+    "include": ["src/**/*"]
+  }
+  

@@ -21,12 +21,21 @@
   },
   "homepage": "https://github.com/wdiazcarballo/dti301-dashboard#readme",
   "dependencies": {
-    "@microsoft/teams-js": "latest",
     "@azure/msal-browser": "latest",
+    "@microsoft/teams-js": "latest",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.473.0",
+    "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "next": "latest",
     "recharts": "latest",
-    "lucide-react": "latest"
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
   }
 }
