@@ -10,11 +10,36 @@ const StudentDashboard = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [language, setLanguage] = useState('th');
 
+  const [classDetails, setClassDetails] = useState(null);
+  const [assignments, setAssignments] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+
   useEffect(() => {
     const initializeTeams = async () => {
       // Initialize Teams context
       const context = await initializeTeamsContext();
       setTeamsContext(context);
+      
+      if (context && context.team) {
+        try {
+          // Get access token
+          const account = msalInstance.getAllAccounts()[0];
+          const tokenResponse = await msalInstance.acquireTokenSilent({
+            scopes: graphScopes,
+            account: account
+          });
+
+          // Get class details
+          const classData = await getClassDetails(tokenResponse.accessToken, context.team.groupId);
+          setClassDetails(classData);
+
+          // Get assignments
+          const assignmentsData = await getClassAssignments(tokenResponse.accessToken, context.team.groupId);
+          setAssignments(assignmentsData.value);
+
+          // Get student profile
+          const profileData = await getStudentProfile(tokenResponse.accessToken);
+          setUserProfile(profileData);
 
       if (context) {
         try {

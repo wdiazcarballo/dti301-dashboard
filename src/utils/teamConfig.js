@@ -1,10 +1,11 @@
+// teamConfig.js
 import * as microsoftTeams from "@microsoft/teams-js";
 import { PublicClientApplication } from "@azure/msal-browser";
 
-// MSAL configuration - You'll need to update these values
+// MSAL configuration
 const msalConfig = {
   auth: {
-    clientId: process.env.NEXT_PUBLIC_CLIENT_ID, // From Azure AD app registration
+    clientId: process.env.NEXT_PUBLIC_CLIENT_ID,
     authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_TENANT_ID}`,
     redirectUri: process.env.NEXT_PUBLIC_REDIRECT_URI,
   },
@@ -29,19 +30,22 @@ export const initializeTeamsContext = async () => {
 // Initialize MSAL
 export const msalInstance = new PublicClientApplication(msalConfig);
 
-// Graph API scopes needed
+// Updated Graph API scopes for education
 export const graphScopes = [
   "User.Read",
   "Team.ReadBasic.All",
   "ChannelMessage.Read.All",
-  "Assignment.Read.All"
+  "EduAssignments.Read",
+  "EduAssignments.ReadWrite",
+  "EduAssignments.ReadBasic",
+  "EduAssignments.ReadWriteBasic"
 ];
 
-// Get Teams assignments
-export const getTeamsAssignments = async (accessToken, teamId) => {
+// Get class assignments
+export const getClassAssignments = async (accessToken, classId) => {
   try {
     const response = await fetch(
-      `https://graph.microsoft.com/v1.0/teams/${teamId}/assignments`,
+      `https://graph.microsoft.com/v1.0/education/classes/${classId}/assignments`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -55,11 +59,29 @@ export const getTeamsAssignments = async (accessToken, teamId) => {
   }
 };
 
-// Get student profile
+// Get student submissions for an assignment
+export const getStudentSubmissions = async (accessToken, classId, assignmentId) => {
+  try {
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/education/classes/${classId}/assignments/${assignmentId}/submissions`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching submissions:", error);
+    return null;
+  }
+};
+
+// Get student profile with educational info
 export const getStudentProfile = async (accessToken) => {
   try {
     const response = await fetch(
-      "https://graph.microsoft.com/v1.0/me",
+      "https://graph.microsoft.com/v1.0/education/me",
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -73,40 +95,12 @@ export const getStudentProfile = async (accessToken) => {
   }
 };
 
-// Save mindfulness data to Teams channel
-export const saveMindfulnessData = async (accessToken, teamId, channelId, data) => {
+// Submit mindfulness reflection
+export const submitReflection = async (accessToken, classId, assignmentId, reflection) => {
   try {
-    const cardData = {
-      contentType: "application/vnd.microsoft.card.adaptive",
-      content: {
-        type: "AdaptiveCard",
-        version: "1.4",
-        body: [
-          {
-            type: "TextBlock",
-            text: "Mindfulness Progress Update",
-            weight: "bolder",
-            size: "medium"
-          },
-          {
-            type: "FactSet",
-            facts: [
-              {
-                title: "Meditation Minutes:",
-                value: data.meditationMinutes.toString()
-              },
-              {
-                title: "Reflection Complete:",
-                value: data.reflectionComplete ? "Yes" : "No"
-              }
-            ]
-          }
-        ]
-      }
-    };
-
-    await fetch(
-      `https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`,
+    // Create submission resource
+    const submissionResponse = await fetch(
+      `https://graph.microsoft.com/v1.0/education/classes/${classId}/assignments/${assignmentId}/submissions`,
       {
         method: "POST",
         headers: {
@@ -114,15 +108,41 @@ export const saveMindfulnessData = async (accessToken, teamId, channelId, data) 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          body: {
-            contentType: "html",
-            content: "Mindfulness Progress Update"
-          },
-          attachments: [cardData]
+          resourcesFolderUrl: null,
+          submittedDateTime: new Date().toISOString(),
+          content: {
+            text: reflection,
+            contentType: "text"
+          }
         }),
       }
     );
+    
+    if (!submissionResponse.ok) {
+      throw new Error('Failed to submit reflection');
+    }
+
+    return await submissionResponse.json();
   } catch (error) {
-    console.error("Error saving mindfulness data:", error);
+    console.error("Error submitting reflection:", error);
+    return null;
+  }
+};
+
+// Get class details
+export const getClassDetails = async (accessToken, classId) => {
+  try {
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/education/classes/${classId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching class details:", error);
+    return null;
   }
 };
