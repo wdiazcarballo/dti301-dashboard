@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Heart, Brain, Dumbbell } from 'lucide-react';
-import { initializeTeamsContext, msalInstance, graphScopes, getTeamsAssignments, getStudentProfile } from './teamConfig';
+import { initializeTeamsContext, msalInstance, graphScopes, getTeamsAssignments, getStudentProfile, getClassDetails } from '../utils/teamConfig';
 
 const StudentDashboard = () => {
   const [teamsContext, setTeamsContext] = useState(null);
+  const [classDetails, setClassDetails] = useState(null);
   const [assignments, setAssignments] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [language, setLanguage] = useState('th');
-
-  const [classDetails, setClassDetails] = useState(null);
-  const [assignments, setAssignments] = useState([]);
-  const [submissions, setSubmissions] = useState([]);
 
   useEffect(() => {
     const initializeTeams = async () => {
@@ -34,30 +31,11 @@ const StudentDashboard = () => {
           setClassDetails(classData);
 
           // Get assignments
-          const assignmentsData = await getClassAssignments(tokenResponse.accessToken, context.team.groupId);
+          const assignmentsData = await getTeamsAssignments(tokenResponse.accessToken, context.team.groupId);
           setAssignments(assignmentsData.value);
 
           // Get student profile
           const profileData = await getStudentProfile(tokenResponse.accessToken);
-          setUserProfile(profileData);
-
-      if (context) {
-        try {
-          // Get access token
-          const account = msalInstance.getAllAccounts()[0];
-          const tokenResponse = await msalInstance.acquireTokenSilent({
-            scopes: graphScopes,
-            account: account
-          });
-
-          // Get assignments and profile
-          const assignmentsData = await getTeamsAssignments(
-            tokenResponse.accessToken,
-            context.team.groupId
-          );
-          const profileData = await getStudentProfile(tokenResponse.accessToken);
-
-          setAssignments(assignmentsData);
           setUserProfile(profileData);
         } catch (error) {
           console.error("Error initializing dashboard:", error);
@@ -90,7 +68,7 @@ const StudentDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Mindful Self Discipline Tracking (Teams doesn't have this) */}
+        {/* Mindful Self Discipline Tracking */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardContent className="p-6">
@@ -135,7 +113,7 @@ const StudentDashboard = () => {
           </Card>
         </div>
 
-        {/* Weekly Reflection (Integrated with Teams Assignments) */}
+        {/* Weekly Reflection */}
         <Card className="mb-8">
           <CardHeader>
             <h2 className="text-xl font-semibold">
